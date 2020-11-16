@@ -1,8 +1,22 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import sourceData from '@/data';
+import {countObjectProperties} from '@/utils';
 
 Vue.use(Vuex);
+
+const makeAppendChildToParentMutation = ({parent, child}) => {
+  return (state, {postId, threadId}) => {
+    const thread = state.threads[threadId];
+
+    // If this is the first user post!
+    if (!thread.posts) {
+      Vue.set(thread, 'posts', {});
+    }
+
+    Vue.set(thread.posts, postId, postId);
+  }
+}
 
 export default new Vuex.Store({
   state: {
@@ -12,7 +26,18 @@ export default new Vuex.Store({
   getters: {
     authUser(state){
       return state.users[state.authId];
-    }
+    },
+
+    /** ARROW FUNCTION - same as this:
+     *     userPostsCount(state){
+            return function(id){
+              return countObjectProperties(state.users[id].posts);
+            }
+          }
+     */
+    userThreadsCount: state => id => countObjectProperties(state.users[id].threads),
+    userPostsCount: state => id => countObjectProperties(state.users[id].posts)
+
   },
   mutations: {
     // POSTS
@@ -23,16 +48,17 @@ export default new Vuex.Store({
       // 3. value --> value of the property
       Vue.set(state.posts, postId, post);
     },
-    appendPostToThread(state, {postId, threadId}) {
-      const thread = state.threads[threadId];
+    // appendPostToThread(state, {postId, threadId}) {
+    //   const thread = state.threads[threadId];
 
-      // If this is the first user post!
-      if (!thread.posts) {
-        Vue.set(thread, 'posts', {});
-      }
+    //   // If this is the first user post!
+    //   if (!thread.posts) {
+    //     Vue.set(thread, 'posts', {});
+    //   }
 
-      Vue.set(thread.posts, postId, postId);
-    },
+    //   Vue.set(thread.posts, postId, postId);
+    // },
+    appendPostToThread: makeAppendChildToParentMutation({parent: 'threads', child: 'posts'}),
     appendPostToUser(state, {userId, postId}){
       const user = state.users[userId];
 
@@ -133,19 +159,20 @@ export default new Vuex.Store({
         resolve(state.threads[threadId]);
       });
     },
-    updateThread({state, commit}, {title, text, id}) {
+    updateThread({state, commit, dispatch}, {title, text, id}) {
       return new Promise((resolve/*, reject*/) => {
         // Current thread and post
         const thread = state.threads[id];
-        // const post = state.posts[thread.firstPostId];
         // New thread and post
         const newThread = {...thread, title};
-        // const newPost = {...post, text};
   
         commit('setThread', { thread: newThread, threadId: id});
-        // commit('setPost', { post: newPost, postId: thread.firstPostId});
 
-        resolve(newThread);
+        // Actions run async, we should wait for the updatePost to complete and then resolve the promise!!
+        dispatch('updatePost', {id: thread.firstPostId, text}).then(() => {
+          resolve(newThread);
+        });
+
       });
     },
 
