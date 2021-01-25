@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "firebase": "^8.0.2",
     "moment": "^2.27.0",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
@@ -27,5 +28,9 @@
     "eslint-plugin-vue": "^6.2.2",
     "prettier": "^1.19.1",
     "vue-template-compiler": "^2.6.11"
-  }
+  },
+  "description": "## Project setup ``` npm install ```",
+  "main": ".eslintrc.js",
+  "author": "",
+  "license": "ISC"
 }
