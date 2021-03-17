@@ -51,15 +51,13 @@ export default {
             const thread = state.threads[id];
             // New thread and post
             const post = state.posts[thread.firstPostId]
-
             
             // update post
             const edited = {
                 at: Math.floor(Date.now() / 1000),
                 by: state.authId
             }
-            
-            
+                       
             const updates = { text, edited }
             // post and thread has a differents paths so we need to define each of them
             updates[`posts/${thread.firstPostId}/text`] = text
