@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # vue-master-class
 
 This repository contains the source code of [The Vue.js Master Class](https://vueschool.io).
@@ -50,3 +51,7 @@ npm run build --report
 ```
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+=======
+# vuejs_masterclass
+VUE school courses.
+>>>>>>> 212b1a24f075799eac82dc9d03774a7d9056cf9a
