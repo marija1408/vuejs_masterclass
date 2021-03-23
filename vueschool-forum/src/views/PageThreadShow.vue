@@ -1,5 +1,5 @@
 <template>
-  <div v-if="thread && user" class="col-large push-top">
+  <div v-if="asyncDataStatus_ready" class="col-large push-top">
     <h1>
       {{ thread.title }}
 
@@ -12,8 +12,8 @@
       </router-link>
     </h1>
     <p>
-      By <a href="#" class="link-unstyled">{{user.name}}</a>,
-      <AppDate :timestamp="thread.publishedAt" />.
+      By <a href="#" class="link-unstyled">{{ user.name }}</a
+      >, <AppDate :timestamp="thread.publishedAt" />.
       <span
         style="float: right; margin-top: 2px"
         class="hide-mobile text-faded text-small"
@@ -27,16 +27,20 @@
 </template>
 
 <script>
-import {mapActions} from 'vuex'
-import PostList from "@/components/PostList.vue";
-import PostEditor from "@/components/PostEditor.vue";
-import {countObjectProperties} from "@/utils";
+import { mapActions } from 'vuex'
+import PostList from '@/components/PostList.vue'
+import PostEditor from '@/components/PostEditor.vue'
+import { countObjectProperties } from '@/utils'
+import asyncDataStatus from '@/mixins/asyncDataStatus'
 
 export default {
   components: {
     PostList,
     PostEditor,
   },
+
+  mixins: [asyncDataStatus],
+
   props: {
     id: {
       required: true,
@@ -45,10 +49,10 @@ export default {
   },
   computed: {
     thread() {
-      return this.$store.state.threads[this.id];
+      return this.$store.state.threads[this.id]
     },
     repliesCount() {
-      return this.$store.getters.threadRepliesCount(this.thread[".key"]);
+      return this.$store.getters.threadRepliesCount(this.thread['.key'])
     },
     user() {
       return this.$store.state.users[this.thread.userId]
@@ -57,32 +61,38 @@ export default {
       return countObjectProperties(this.thread.contributors)
     },
     posts() {
-      const postIds = Object.values(this.thread.posts);
-      return Object.values(this.$store.state.posts).filter((post) =>
-        postIds.includes(post[".key"])
-      );
-    }
+      const postIds = Object.values(this.thread.posts)
+      return Object.values(this.$store.state.posts).filter(post =>
+        postIds.includes(post['.key'])
+      )
+    },
   },
   methods: {
-    ...mapActions(['fetchThread', 'fetchUser', 'fetchPosts'])
+    ...mapActions(['fetchThread', 'fetchUser', 'fetchPosts']),
   },
 
   created() {
     // Fetch thread
-    this.fetchThread({id: this.id}).then(thread => {
-      // Fetch user
-      this.fetchUser({id: thread.userId})
-
-      // Fetch post
-      this.fetchPosts({ids: Object.keys(thread.posts)}).then(posts => {
-        posts.forEach(post => {
-          // Fetch user
-          this.fetchUser({id: post.userId})
-        });
+    this.fetchThread({ id: this.id })
+      .then(thread => {
+        // Fetch user
+        this.fetchUser({ id: thread.userId })
+        // Fetch post
+        return this.fetchPosts({ ids: Object.keys(thread.posts) })
       })
-    })
+      .then(posts => {
+        // Fetch user
+        return Promise.all(
+          posts.map(post => {
+            this.fetchUser({ id: post.userId })
+          })
+        )
+      })
+      .then(() => {
+        this.asyncDataStatus_fetched()
+      })
   },
-};
+}
 </script>
 
 <style>
