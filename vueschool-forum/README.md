@@ -20,5 +20,10 @@ npm run build
 npm run lint
 ```
 
+### Firebase seed database
+```
+npm run db:seed
+```
+
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
